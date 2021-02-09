@@ -1,0 +1,142 @@
+---
+title: "Week 05 Homework"
+author: "[Aryaa Rajouria] (mailto:rajouria@uw.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+header-includes: #allows you to add in your own Latex packages
+- \usepackage{float} #use the 'float' package
+- \floatplacement{figure}{H} #make every figure with caption = h
+output: 
+    html_document:
+        number_sections: true
+        self_contained: true
+        code_folding: hide
+        toc: true
+        toc_float:
+            collapsed: true
+            smooth_scroll: false
+urlcolor: blue        
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+```{r libs}
+# key setups
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyverse))
+suppressMessages(library(knitr))
+suppressMessages(library(haven))
+
+options(warn=-1)
+```
+
+## Setting up the dataset 
+
+Below, I generate the dataset for the pain of graduate school experienced by graduate students (gradpain). 
+```{r data}
+gradpain <- c(rep(0,11), rep(1,1), rep(2,2), rep(3,6), rep(4,8), rep(5,10),
+ rep(6,8), rep(7,30), rep(8,10), rep(9,6), rep(10,2))
+
+barplot <-barplot(table(gradpain), las=1, ylab="Frequency", xlab="Pain Scale",
+ main="How painful is graduate school?")
+
+table(gradpain)
+summary(gradpain)
+```
+
+```{r}
+#pain <- table (gradpain)
+#pain
+
+#as.data.frame(table(pain))
+#table(gradpain)
+
+#count(gradpain[1:94])
+
+#count_pain <- function(gradpain){
+  #df <- data.frame(gradpain = gradpain[1:length(gradpain)])
+  #count(df[1:94])
+#}
+
+#count_pain
+```
+
+## Box 1
+
+
+```{r boxone}
+fun_sam <- function(x, d.vec= gradpain, n= length(gradpain)){
+    s <- sample(x= gradpain, size = 1000, replace = TRUE)
+  return(list(mean(d.vec), n))
+}
+
+boxone <- fun_sam(gradpain)
+```
+
+As per the function fun_sam, the mean and sample size of the function is `r boxone`.
+
+## Box 2
+
+```{r}
+fun_samp <- function (d.vec = gradpain, n = 100){
+  new_s <- sample (x = d.vec, size=n, replace= TRUE)
+  list(len_ = length(samp), mean_= (samp))
+}
+```
+
+```{r}
+
+#taking sample from d.vec, of 100 n w/ replacement 
+fun_samp <- function(d.vec = gradpain, n = 100){
+    samp <- sample(x = d.vec, size = n, replace = TRUE)
+    list(vec.len = length(samp),
+         vec.mean = mean(samp))
+}
+
+# create an empty vector to store results
+x <- NULL
+
+# setting seed for replicabiity 
+set.seed(7)
+
+# run 100x loop: esp the fun_sample, in a list form 
+for(i in 1:100){
+    m <- fun_samp(d.vec = gradpain, n = length(gradpain))$vec.mean
+    # build up the vector
+    x <- c(x, m)
+}
+```
+
+As per the function, the mean and standard deviation for some of the samples are `r head(x)` of the randomly sample means.
+
+## Box 3
+
+```{r boxthree}
+set.seed(7)
+function6 <- function(d.vec= gradpain, n= length(gradpain), num.samples=100){
+  L <- NULL 
+for (i in 1:num.samples){
+  s <- sample(x= d.vec, size = n, replace = TRUE)
+  L <- c(x, mean(s))
+  meanmeans <- mean(L)
+  sdf <- sd(L)
+  ci_95 <- Rmisc::CI(x = L, ci =0.95)
+  return(list(n, num.samples, L,  meanmeans, sdf, ci_95))
+}}
+
+numbers <- function6(as.numeric(gradpain))
+numbers
+```
+5. What does your function return for the mean of means?
+
+The function returns `r numbers$meanmeans` for the mean of means. 
+
+6. What does your function return for the standard deviation of means?
+
+The function returns `r numbers$sdf` for the standard deviation of means. 
+
+7. What does your function return for the 95% confidence interval around the mean?
+
+The function returns `r numbers$ci_95` for the 95% confidence interval around the mean. 
