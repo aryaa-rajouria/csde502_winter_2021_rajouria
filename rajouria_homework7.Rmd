@@ -1,0 +1,259 @@
+---
+title: "Week 07 Homework"
+author: "[Aryaa Rajouria] (mailto:rajouria@uw.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+header-includes: #allows you to add in your own Latex packages
+- \usepackage{float} #use the 'float' package
+- \floatplacement{figure}{H} #make every figure with caption = h
+output: 
+    html_document:
+        number_sections: true
+        self_contained: true
+        code_folding: hide
+        toc: true
+        toc_float:
+            collapsed: true
+            smooth_scroll: false
+urlcolor: blue        
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+```{r libs}
+# key setups
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyverse))
+suppressMessages(library(knitr))
+suppressMessages(library(haven))
+suppressMessages(library(magrittr))
+#getting rid of popup messages
+options(warn=-1)
+```
+
+```{r}
+#loading data
+data <- haven::read_dta("http://staff.washington.edu/phurvitz/csde502_winter_2021/data/AHwave1_v1.dta")
+attributes(AHwave1_v1_haven$h1gi1m)$labels
+```
+```{r}
+# use Sys.getenv("TEMP") to get the system temp dir to save the CSV and RDS files
+tmpdir <- Sys.getenv("TEMP")
+write.csv(x = AHwave1_v1_haven, file = file.path(tmpdir, "AHwave1_v1_haven.csv"), row.names = FALSE)
+saveRDS(object = AHwave1_v1_haven, file = file.path(tmpdir, "AHwave1_v1_haven.RDS"))
+```
+
+I will first generate a new data frame from the full public Add Health data set. 
+
+```{r}
+
+library(tidyverse)
+
+newdata <- data %>% select(bio_sex, h1gi4, h1fs6, h1fs7) %>% mutate (bio_sex = bio_sex, hisp= h1gi4, dep = h1fs6, tired = h1fs7)
+
+newdata
+
+```
+
+I will then change the labels to be relevant to and informative of my variables of interest.
+```{r}
+##looking to see if columns have attribute
+newdata %>% attributes() %>% map(~head(.))
+
+#converting bio sex to factor
+head(newdata$bio_sex)
+
+newdata$bio_sex <- factor(newdata$bio_sex)
+
+bs<- newdata$bio_sex %>% 
+    attributes() %>% 
+    extract2("labels") %>% 
+    names()
+
+newdata$bio_sex <- factor(newdata$bio_sex, 
+                                  labels = "biological_sex", 
+                                  ordered = TRUE) %>% 
+    fct_relevel(rev)
+```
+
+
+
+
+
+```{r}
+# extract the labels from the column attribute
+#sex <- newdata$bio_sex %>% 
+  #  attributes() %>% 
+   # extract2("labels") %>% 
+    #names()
+
+# create the factor variable
+#newdata$bio_sex <- factor(newdata$bio_sex, 
+                                 # labels = "bio_sex", 
+                                  #ordered = TRUE) %>% 
+    #fct_relevel(rev)
+
+
+# extract the labels from the column attribute
+#hispanic <- newdata$h1gi4 %>% 
+ #   attributes() %>% 
+#    extract2("labels") %>% 
+ #   names()
+
+# create the factor variable
+#newdata$h1gi4 <- factor(newdata$h1gi4, 
+ #                                 labels = #"hispanic", 
+                 #                 ordered = TRUE) #%>% 
+   # fct_relevel(rev)
+
+# extract the labels from the column attribute
+depressed <- newdata$h1fs6 %>% 
+    attributes() %>% 
+    extract2("labels") %>% 
+    names()
+
+# create the factor variable
+newdata$h1fs6 <- factor(newdata$h1fs6, 
+                                  labels = "depressed", 
+                                  ordered = TRUE) %>% 
+    fct_relevel(rev)
+
+# extract the labels from the column attribute
+#tired <- newdata$h1fs7 %>% 
+ #   attributes() %>% 
+  #  extract2("labels") %>% 
+   # names()
+
+# create the factor variable
+#newdata$bio_h1fs7 <- factor(newdata$h1fs7, 
+                                 # labels = "tired", 
+                              #    ordered = TRUE) #%>% 
+#    fct_relevel(rev)
+```
+
+
+```{r}
+# factor variable
+#tab biosex
+(tab_biosex <- newdata %>% 
+     group_by(bio_sex) %>% 
+     summarise(n = n()))
+
+#factor variable
+#tab hispanic or not
+(tab_hisp <- newdata %>% 
+     group_by(h1gi4) %>% 
+     summarise(n = n()))
+
+#tab too depressed
+(tab_hisp <- newdata %>% 
+     group_by(h1gi6) %>% 
+     summarise(n = n()))
+
+#tab too tired to do things 
+(tab_hisp <- newdata %>% 
+     group_by(h1gi7) %>% 
+     summarise(n = n()))
+```
+
+
+```{r}
+attributes(newdata)$label <- "National Longitudinal Study of Adolescent to Adult Health (Add Health), 1994-2000 with some variable additions"
+
+attributes(newdata$bio_sex)$label <- "biological sex"
+attributes(newdata$bio_sex)$levels <- c("male", "female", "no ans")
+
+attributes(newdata$tired)$label <- "data on feeling tired"
+attributes(newdata$tired)$levels <- c("(0) Never/rarely", "(2) A lot of the time", "(3) Most/all the time")
+
+```
+
+
+```{r}
+Sys.getenv("TEMP")
+```
+
+Creating tables for the different variables to give us a little more information about the variables of interest.
+```{r}
+#table w count
+round(prop.table(table(newdata$bio_sex)), 2)
+#table w percent
+round(prop.table(table(newdata$bio_sex)), 2)
+
+#putting it in a nice table
+newdata %>% 
+    group_by(bio_sex) %>% 
+    summarise(n = n()) %>% 
+    mutate(`%` = n / sum(n) * 100) %>% 
+    mutate(`%` = `%` %>% round(1)) %>% 
+    knitr::kable() 
+```
+```{r}
+#table w count
+round(prop.table(table(newdata$h1gi4)), 2)
+#table w percent
+round(prop.table(table(newdata$h1gi4)), 2)
+
+#putting it in a nice table
+newdata %>% 
+    group_by(h1gi4) %>% 
+    summarise(n = n()) %>% 
+    mutate(`%` = n / sum(n) * 100) %>% 
+    mutate(`%` = `%` %>% round(1)) %>% 
+    knitr::kable() 
+
+```
+
+```{r}
+#table w count
+round(prop.table(table(newdata$h1fs6)), 2)
+#table w percent
+round(prop.table(table(newdata$h1fs6)), 2)
+
+#putting it in a nice table
+newdata %>% 
+    group_by(h1fs6) %>% 
+    summarise(n = n()) %>% 
+    mutate(`%` = n / sum(n) * 100) %>% 
+    mutate(`%` = `%` %>% round(1)) %>% 
+    knitr::kable() 
+
+```
+
+```{r}
+#table w count
+round(prop.table(table(newdata$h1fs7)), 2)
+#table w percent
+round(prop.table(table(newdata$h1fs7)), 2)
+
+#putting it in a nice table
+newdata %>% 
+    group_by(h1fs7) %>% 
+    summarise(n = n()) %>% 
+    mutate(`%` = n / sum(n) * 100) %>% 
+    mutate(`%` = `%` %>% round(1)) %>% 
+    knitr::kable() 
+```
+
+Now I tabulate biological sex with the variable depression. 
+```{r}
+newdata %>% 
+    group_by(bio_sex,
+             h1fs7) %>% 
+    summarise(n = n(), .groups = "drop_last") %>% 
+    mutate(`%` = n / sum(n) * 100) %>% 
+    mutate(`%` = `%` %>% round(1)) %>% 
+    kable() 
+```
+
+Finally, we graph biological sex with depression. 
+
+```{r}
+#using ggplot to graph depression and biological sex
+boxplot <- ggplot(data=newdata, aes(x=bio_sex, y=h1fs7)) +
+              geom_boxplot()
+
+boxplot #called to view boxplot 
+```
