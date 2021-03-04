@@ -1,0 +1,185 @@
+---
+title: "Week 08 Homework"
+author: "[Aryaa Rajouria] (mailto:rajouria@uw.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+header-includes: #allows you to add in your own Latex packages
+- \usepackage{float} #use the 'float' package
+- \floatplacement{figure}{H} #make every figure with caption = h
+output: 
+    html_document:
+        number_sections: true
+        self_contained: true
+        code_folding: hide
+        toc: true
+        toc_float:
+            collapsed: true
+            smooth_scroll: false
+urlcolor: blue        
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+```{r libs}
+# key setups
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyverse))
+suppressMessages(library(knitr))
+suppressMessages(library(haven))
+suppressMessages(library(magrittr))
+suppressMessages(library(kableExtra))
+library(pdftools)
+library(curl)
+library(ggplot2)
+library(naniar)
+#getting rid of popup messages
+options(warn=-1)
+```
+
+```{r}
+library(captioner)
+
+figure_nums <- captioner(prefix = "Figure")
+table_nums <- captioner(prefix = "Table")
+```
+
+#
+Imagine a new variable: multirace, using the following value definitions:
+
+	1 = one race, White
+	2 = one race, not White
+	3 = two races, includes White
+	4 = two races, both non-White
+	5 = three or more races, includes White
+	6 = three or more races, all non-White
+	9 = any race missing (White, Black/African American, American Indian, Asian, other)
+
+
+## 
+__Fill in the codes for the hypothetical cases below (`r table_nums(name = "t01", display = "cite")`).__
+
+`r table_nums(name = "t01", caption = "A hypothetical data set")`
+
+
+| white| black| AI| asian| raceother|multirace |
+|-----:|-----:|--:|-----:|---------:|---------:|
+|     1|     0|  0|     0|         0|        0 |
+|     0|     1|  0|     0|         0|        0 |
+|     1|     0|  0|     1|         0|        1 |
+|     0|     1|  1|     0|         0|        1 |
+|     1|     1|  0|     1|         0|        1 |
+|     0|     1|  0|     0|         1|        1 |
+|     0|     1|  1|     0|         1|        1 |
+|     1|     0|  1|     0|         0|        1 |
+|     1|     1|  1|     0|         1|        1 |
+|     6|     1|  8|     1|         6|        7 |	
+
+
+## 
+__Using this data frame (code below), report how many cases checked more than one race.__ Use R code to make this calculation and use inline expressions.
+
+```
+dat <- 
+structure(
+    list(
+        white = c(1L, 0L, 1L, 0L, 1L, 0L, 0L, 1L, 1L, 6L),
+        black = c(0L, 1L, 0L, 1L, 1L, 1L, 1L, 0L, 1L, 1L), 
+        AI = c(0L, 0L, 0L, 1L, 0L, 0L, 1L, 1L, 1L, 8L), 
+        asian = c(0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 0L, 1L), 
+        raceother = c(0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 6L), 
+        multirace = c(0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 7L),
+    ), 
+    class = "data.frame", 
+    row.names = c(NA, -10L)
+)
+```
+```{r}
+dat <- 
+structure(
+    list(
+        white = c(1L, 0L, 1L, 0L, 1L, 0L, 0L, 1L, 1L, 6L),
+        black = c(0L, 1L, 0L, 1L, 1L, 1L, 1L, 0L, 1L, 1L), 
+        AI = c(0L, 0L, 0L, 1L, 0L, 0L, 1L, 1L, 1L, 8L), 
+        asian = c(0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 0L, 1L), 
+        raceother = c(0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 6L), 
+        multirace = c(0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 7L)
+    ), 
+    class = "data.frame", 
+    row.names = c(NA, -10L)
+)
+```
+
+
+##
+__Write R code to create the multirace variable, using the data set [AHwave1_v3.rds](http://staff.washington.edu/phurvitz/csde502_winter_2021/data/AHwave1_v3.rds).__ _Hint: You may want to create another variable, numrace, that counts the number of races._ Use [`download_file()`](https://stat.ethz.ch/R-manual/R-devel/library/utils/html/download.file.html) and `Sys.getenv("TEMP")` to download the file to your system's `TEMP` directory to avoid local file system dependencies.
+
+
+```{r}
+#loading data
+v3 <- "http://staff.washington.edu/phurvitz/csde502_winter_2021/data/AHwave1_v3.rds"
+  
+download.file(v3, "file.RDS")
+# read into R
+readRDS("file.RDS")
+
+# Or similarly
+curl::curl_download(v3, "file.RDS")
+# read into R
+readRDS("file.RDS")
+
+#saving to temp 
+getting_data <- function(v3) {
+  
+  tempFile_location<- tempfile()
+  download.file(v3, tempFile_location)
+  b <- readRDS(tempFile_location)
+  file.remove(tempFile_location)
+  b
+}
+
+b <- getting_data(v3)
+```
+
+```{r}
+#creating a temp directory so that you don't have to depend on local file system dependencies
+Sys.getenv("TEMP")
+Sys.getenv("TMPDIR")
+
+```
+
+
+## 
+__Label the multirace variable as well as its values using attribute labels.__.
+
+```{r}
+#labeling variable using attribute labels
+attributes(dat$multirace)$label <- "multirace"
+attributes(dat$multirace)
+
+# label for health
+attributes(dat$multirace)$label <- "Multirace data"
+# values for health
+attributes(dat$multirace)$levels <- c("(1) individual is multiracial", "(0) individual is not multiracial", "(7) total number of individuals that are multiracial")
+```
+
+
+## 
+__Include below a contingency table of the multirace variable. Make sure that the values are labelled so the table is readable, and also include any missing values.__
+
+```{r}
+#table w count
+round(prop.table(table(dat$multirace)), 2)
+#table w percent
+round(prop.table(table(dat$multirace)), 2)
+
+#putting it in a nice table
+dat %>% 
+    group_by(multirace) %>% 
+    summarise(n = n()) %>% 
+    mutate(`%` = n / sum(n) * 100) %>% 
+    mutate(`%` = `%` %>% round(1)) %>% 
+    knitr::kable(caption = "Multirace Variable") %>% 
+    kable_styling(full_width = FALSE, position = "left")
+```
