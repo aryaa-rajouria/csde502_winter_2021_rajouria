@@ -1,0 +1,122 @@
+---
+title: "Week 10 Homework: Gendered Births in Italy"
+author: "[Aryaa Rajouria] (mailto:rajouria@uw.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+header-includes: #allows you to add in your own Latex packages
+- \usepackage{float} #use the 'float' package
+- \floatplacement{figure}{H} #make every figure with caption = h
+output: 
+    html_document:
+        number_sections: true
+        self_contained: true
+        code_folding: hide
+        toc: true
+        toc_float:
+            collapsed: true
+            smooth_scroll: false
+urlcolor: blue        
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+```{r libs}
+# key setups
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyverse))
+suppressMessages(library(knitr))
+suppressMessages(library(haven))
+suppressMessages(library(magrittr))
+#getting rid of popup messages
+options(warn=-1)
+```
+
+```{r}
+#importing data
+library(readxl)
+birthdata <- read_excel("G:/My Drive/University of Washington (PhD) Academics/Year 1 (Academic Year 2020-2021)/Winter Quarter 2021/CSDE 502/homework 10/birthdata.xlsx")
+View(birthdata)
+
+```
+
+## Introduction 
+
+Italy, a country located in  Southern Europe, outlined with a long Mediterranean coastline, is known to be "the birthplace of Western culture" [Wiki Travels](https://wikitravel.org/en/Italy).On the cultural end, it festooned with relics of an older world: it is home to the greatest number of UNESCO World Heritage Sites, the Alpine lakes and mountain ranges, and known for it's cuisine. The theme of an 'older world' is also replicated in it's demography. In recent years, Italy has announced that its declining birth rate has become so low, it can be labeled a crises [Reuters](https://www.reuters.com/article/us-italy-population/italy-faces-existential-threat-over-low-birthrate-president-idUSKBN2052E). The low birth rate not only indicates an older population that has exited the workforce (that need younger people to take over), but also a slow lost of culture and way of life. Climate change, and more recently, the coronavirus pandemic have accelerated this demographic crises [The Guardian](https://www.theguardian.com/world/2020/dec/26/covid-and-climate-of-fear-puts-italian-birth-rate-at-lowest-since-unification#:~:text=Italy's%20birth%20rate%20is%20expected,1861%20%E2%80%93%20while%20deaths%20totalled%20647%2C000). 
+
+
+As a result, I want to explore the declining birth rate in Italy. More specifically, I want to see the disparity (if any) between males and females in the birth rate. Is there a significant decline? If so, what would that mean to the larger demographic trends? The second question will necessitate a more in depth research paper and way more time. However, in this paper, I intend to explore the first question. Is there a difference between the rate of birth between males and females in Italy? This will be a very, very, very simple descriptive exploration of the data. There is no analysis or insight into causal relationships. 
+
+
+## Methods 
+
+**Data and Analysis** 
+
+I will be using the birth rate data from the Human Mortality Database [The Human Mortality Database](https://www.mortality.org/). The data set I will be using is situated in the time frame between 1862 and 2017. This will enable me to see larger trends in the birth rate over time. To explore the data, below, I've created the some tables below. The mean of birth rate for males is `mean(birthdata$Male)` and the mean of birth rates for females is `mean(birthdata$Females)`. The first one finds the percentage of male and female births separately for each year. The second creates a sum of male and female birth information for this entire time frame. Thirdly, because I am interested in the difference between the males and females in the population, I create a column that calculates this difference. 
+
+```{r}
+gendered_table <- birthdata %>% 
+    group_by(Male) %>% 
+    mutate(`Male %` = Male / (Total) * 100) %>% 
+    mutate(`Female %` = Female / (Total) * 100) %>%
+    kable() 
+
+head(gendered_table)
+
+sum_table <- birthdata %>% 
+    mutate(MaleSum = sum(Male)) %>% 
+    mutate(FemaleSum = sum(Female)) %>%
+    kable() 
+
+head(sum_table)
+
+diff <- birthdata %>% 
+    mutate(diff_norm = (Male - Female)/Total)
+
+# write.table(diff, "birthdata1.csv", sep=",")
+# #save(diff, file = "birthdata1.")
+# #birthdata1 <- load("birthdata1.Rdata")
+# birthdata1 <- read.csv("birthdata1.csv", sep=",")
+
+birthdata <- diff
+```
+
+Now, I intend to visually explore this data set and these relationships. I create 4 different graphs. The first is a graph between the year and female births. The is a graph between the year and male births. THe third is a graphical depiction of the  year and total population. Then, I examine the difference (between male and female) and year. 
+
+```{r}
+
+# Scatter plot
+female_sp <- ggplot(birthdata, aes(x = Year, y = Female, colour(blues9)))+ 
+  geom_point(size=1)
+female_sp
+
+male_sp <- ggplot(birthdata, aes(x = Year, y = Male, colour(blues9)))+ 
+  geom_point(size=1)
+male_sp
+
+total_sp <- ggplot(birthdata, aes(x = Year, y = Total, colour(blues9)))+ 
+  geom_point(size=1)
+total_sp
+
+diff_sp <- ggplot(diff, aes(x = Year, y = diff_norm))+ 
+  geom_point(size=1)
+diff_sp
+```
+
+## Results 
+
+As evident in the graphs above, the general trends between males and females are similar. There is a steady increase in birth rate until 1880. Then, there is period of relative stagnancy. With a couple of outliners (steep declines) in the early quarter of the 1900s. From that point there is a steady decline abet the short term increase of rates in the 1960s. From that point onwards, there is a steep decline that continues to today. 
+
+While the trends of both male and female birth rates follow relatively similar trend lines, the difference in birth rates between the two demonstrates a more complex story. Until the early 1900s, there seems to be declining male births compared to female births. This remains until the 1970s when it is evident that there were more male births than female births. However, there is a slight decline in this relaitonship since the 2000s, indicating another period in which female births surpass male briths. This dip indicates a general pattern. 
+
+## Discussion and Conclusion 
+
+As evident in the research and as depicted in popular media, there is a steep decline in birth rates in Italy. These trends are the same for females and males. However, the difference between the two birth rates reveal that at different points in time -- either by chance or by intention-- there were more births of one sex when compared to the other. This would indicate need and space for more in depth exploration regarding this phenomenon. This was simply a very brief exploration of the data that encouraged me to spend some more time thinking about this. 
+
+## References (apologies, didn't have time to make things look pretty-- finals week!)
+1) https://wikitravel.org/en/Italy
+2) https://www.reuters.com/article/us-italy-population/italy-faces-existential-threat-over-low-birthrate-president-idUSKBN2052E
+3) https://www.theguardian.com/world/2020/dec/26/covid-and-climate-of-fear-puts-italian-birth-rate-at-lowest-since-unification#:~:text=Italy's%20birth%20rate%20is%20expected,1861%20%E2%80%93%20while%20deaths%20totalled%20647%2C000
+4) https://www.mortality.org/
+
